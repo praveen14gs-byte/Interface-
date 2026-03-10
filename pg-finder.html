@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PG Finder – Find Your Perfect Stay</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --coral: #ff6b6b;
+  --violet: #7c3aed;
+  --teal: #0fd6c2;
+  --gold: #ffd93d;
+  --rose: #f472b6;
+  --navy: #0f0c29;
+  --midnight: #0a0818;
+  --card-bg: rgba(255,255,255,0.05);
+  --glass: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.12);
+  --text: #f0eeff;
+  --muted: rgba(240,238,255,0.55);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--midnight);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ─── Custom Cursor ─────────────────────────── */
+#cursor {
+  width: 14px; height: 14px;
+  background: var(--teal);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.12s ease, background 0.3s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  width: 40px; height: 40px;
+  border: 1.5px solid rgba(15,214,194,0.5);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.35s cubic-bezier(.23,1,.32,1), opacity 0.3s;
+}
+
+/* ─── Animated BG Orbs ──────────────────────── */
+.bg-orbs {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: floatOrb 18s ease-in-out infinite;
+}
+.orb1 { width:500px;height:500px;background:var(--violet);top:-100px;left:-100px;animation-delay:0s; }
+.orb2 { width:400px;height:400px;background:var(--coral);top:40%;right:-80px;animation-delay:-6s; }
+.orb3 { width:350px;height:350px;background:var(--teal);bottom:-80px;left:30%;animation-delay:-12s; }
+.orb4 { width:300px;height:300px;background:var(--rose);top:20%;left:50%;animation-delay:-4s; }
+
+@keyframes floatOrb {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(40px,-60px) scale(1.08); }
+  66% { transform: translate(-30px,40px) scale(0.95); }
+}
+
+/* Animated grid overlay */
+.grid-overlay {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none; z-index: 0;
+  animation: gridDrift 20s linear infinite;
+}
+@keyframes gridDrift {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
+/* ─── Navbar ────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  height: 72px;
+  background: rgba(10,8,24,0.75);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  animation: slideDown 0.7s cubic-bezier(.23,1,.32,1) both;
+}
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, var(--teal), var(--violet));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--coral); -webkit-text-fill-color: var(--coral); }
+.nav-links { display: flex; align-items: center; gap: 6px; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 8px 18px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(.23,1,.32,1);
+  position: relative;
+  overflow: hidden;
+}
+.nav-links a::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--teal), var(--violet));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: 100px;
+}
+.nav-links a:hover { color: white; border-color: var(--border); }
+.nav-links a:hover::before { opacity: 0.15; }
+.nav-links a.active {
+  color: white;
+  background: linear-gradient(135deg, rgba(15,214,194,0.2), rgba(124,58,237,0.2));
+  border-color: rgba(15,214,194,0.3);
+}
+.toggle-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+}
+.toggle-btn:hover { background: rgba(255,255,255,0.15); transform: rotate(20deg); }
+
+/* ─── Pages ─────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  padding-top: 72px;
+  position: relative;
+  z-index: 1;
+  display: none;
+}
+.page.active { display: block; animation: fadeUp 0.6s cubic-bezier(.23,1,.32,1) both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── HOME PAGE ─────────────────────────────── */
+#home { display: flex; flex-direction: column; }
+
+.hero {
+  min-height: calc(100vh - 72px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(15,214,194,0.1);
+  border: 1px solid rgba(15,214,194,0.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  color: var(--teal);
+  font-weight: 500;
+  margin-bottom: 28px;
+  animation: fadeUp 0.7s 0.2s both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.7s 0.35s both;
+}
+.hero h1 .line1 { display: block; color: var(--text); }
+.hero h1 .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--coral) 0%, var(--rose) 40%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 48px;
+  animation: fadeUp 0.7s 0.5s both;
+}
+
+.hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.7s 0.65s both; }
+
+.btn-primary {
+  padding: 14px 36px;
+  background: linear-gradient(135deg, var(--teal), var(--violet));
+  border: none;
+  border-radius: 100px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 0 30px rgba(15,214,194,0.3);
+}
+.btn-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(15,214,194,0.4); }
+.btn-primary:hover::after { opacity: 0.1; }
+
+.btn-outline {
+  padding: 14px 36px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-outline:hover { border-color: var(--teal); color: var(--teal); background: rgba(15,214,194,0.06); }
+
+/* Stats strip */
+.stats-strip {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  padding: 60px 24px;
+  border-top: 1px solid var(--border);
+  animation: fadeUp 0.7s 0.8s both;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--gold), var(--coral));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+/* Features */
+.features {
+  padding: 80px 48px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+.feature-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(.23,1,.32,1), border-color 0.3s;
+  animation: fadeUp 0.6s both;
+}
+.feature-card:hover { transform: translateY(-8px); border-color: rgba(15,214,194,0.4); }
+.feature-card::before {
+  content: '';
+  position: absolute;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  top: -40px; right: -40px;
+  opacity: 0.15;
+  transition: opacity 0.3s;
+}
+.fc1::before { background: var(--teal); }
+.fc2::before { background: var(--coral); }
+.fc3::before { background: var(--violet); }
+.fc4::before { background: var(--gold); }
+.feature-card:hover::before { opacity: 0.3; }
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  display: block;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+.feature-card h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+}
+.feature-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+/* ─── ADD ROOM PAGE ──────────────────────────── */
+#add { padding: 100px 48px 60px; }
+
+.page-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.page-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--text), var(--muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.page-header p { color: var(--muted); margin-top: 10px; }
+
+.form-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 48px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+.form-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(15,214,194,0.06));
+  pointer-events: none;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid .full { grid-column: 1 / -1; }
+
+.field {
+  position: relative;
+  margin-bottom: 4px;
+}
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.field input, .field select {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  -webkit-appearance: none;
+}
+.field input::placeholder { color: rgba(240,238,255,0.3); }
+.field input:focus, .field select:focus {
+  border-color: var(--teal);
+  background: rgba(15,214,194,0.05);
+  box-shadow: 0 0 0 4px rgba(15,214,194,0.1);
+}
+.field select option { background: #1a1535; color: white; }
+
+.file-upload {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.file-upload:hover { border-color: var(--teal); background: rgba(15,214,194,0.05); }
+.file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-upload .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+.file-upload span { color: var(--muted); font-size: 0.9rem; }
+.file-upload strong { color: var(--teal); }
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--violet) 100%);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 8px 30px rgba(124,58,237,0.35);
+  margin-top: 8px;
+}
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(124,58,237,0.5); }
+.submit-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  transition: width 0.6s, height 0.6s;
+}
+.submit-btn:active::after { width: 300px; height: 300px; }
+
+/* ─── VIEW ROOMS PAGE ────────────────────────── */
+#view { padding: 100px 48px 60px; }
+
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  backdrop-filter: blur(20px);
+}
+.search-bar input, .search-bar select {
+  flex: 1;
+  min-width: 160px;
+  padding: 12px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s;
+  -webkit-appearance: none;
+}
+.search-bar input::placeholder { color: rgba(240,238,255,0.3); }
+.search-bar input:focus, .search-bar select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,214,194,0.1); }
+.search-bar select option { background: #1a1535; }
+.search-btn {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--teal), var(--violet));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.search-btn:hover { transform: scale(1.04); box-shadow: 0 8px 24px rgba(15,214,194,0.3); }
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Room Card */
+.room-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(.23,1,.32,1), border-color 0.3s, box-shadow 0.4s;
+  animation: cardIn 0.5s cubic-bezier(.23,1,.32,1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.room-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: rgba(15,214,194,0.4);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(15,214,194,0.15);
+}
+.card-img-wrap {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+.card-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(.23,1,.32,1);
+}
+.room-card:hover .card-img-wrap img { transform: scale(1.08); }
+.card-img-wrap::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(10,8,24,0.9) 0%, transparent 60%);
+}
+.card-type-badge {
+  position: absolute;
+  top: 14px; left: 14px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+.badge-single { background: rgba(15,214,194,0.25); color: var(--teal); border: 1px solid rgba(15,214,194,0.4); }
+.badge-shared { background: rgba(244,114,182,0.25); color: var(--rose); border: 1px solid rgba(244,114,182,0.4); }
+
+.card-rent-tag {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--gold);
+  z-index: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.card-body { padding: 20px; }
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.card-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+.card-detail .icon { font-size: 1rem; }
+.tag-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 14px 0;
+}
+.tag {
+  padding: 4px 10px;
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  color: #c4b5fd;
+}
+.card-actions {
+  display: flex; gap: 10px;
+  margin-top: 16px;
+}
+.btn-contact, .btn-delete {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-contact {
+  background: linear-gradient(135deg, rgba(15,214,194,0.2), rgba(124,58,237,0.2));
+  border: 1px solid rgba(15,214,194,0.3);
+  color: var(--teal);
+}
+.btn-contact:hover { background: linear-gradient(135deg, var(--teal), var(--violet)); color: white; transform: scale(1.03); }
+.btn-delete {
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.3);
+  color: var(--coral);
+}
+.btn-delete:hover { background: var(--coral); color: white; transform: scale(1.03); }
+
+/* Empty state */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 24px;
+}
+.empty-state .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.4rem; margin-bottom: 8px; color: var(--muted); }
+
+/* ─── Toast ─────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 32px; right: 32px;
+  z-index: 999;
+  background: linear-gradient(135deg, #0fd6c2, #7c3aed);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(.23,1,.32,1);
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ─── Progress bar on form submit ───────────── */
+#progress {
+  position: fixed; top: 72px; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--violet), var(--coral));
+  width: 0%;
+  z-index: 200;
+  transition: width 0.5s ease;
+}
+
+/* ─── Dark mode override ─────────────────────── */
+body.light {
+  --midnight: #f0eeff;
+  --text: #1a1535;
+  --muted: rgba(26,21,53,0.6);
+  --glass: rgba(0,0,0,0.04);
+  --border: rgba(0,0,0,0.1);
+  --card-bg: rgba(255,255,255,0.8);
+  background: #f0eeff;
+}
+body.light .orb { opacity: 0.12; }
+
+/* ─── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 3px; }
+
+/* Responsive */
+@media(max-width: 640px) {
+  nav { padding: 0 20px; }
+  .nav-logo { font-size: 1.1rem; }
+  .nav-links a { padding: 7px 12px; font-size: 0.82rem; }
+  #add, #view { padding: 90px 20px 40px; }
+  .form-wrapper { padding: 28px 20px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-strip { gap: 30px; flex-wrap: wrap; }
+  .features { padding: 40px 20px; }
+  .hero h1 { letter-spacing: -1px; }
+}
+</style>
+</head>
+
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="progress"></div>
+<div id="toast">✅ Room Added Successfully!</div>
+
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="orb orb4"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">PG<span>.</span>Finder</div>
+  <div class="nav-links">
+    <a id="nav-home" class="active" onclick="showPage('home')">Home</a>
+    <a id="nav-add" onclick="showPage('add')">➕ Add Room</a>
+    <a id="nav-view" onclick="showPage('view')">🏠 Browse</a>
+    <button class="toggle-btn" onclick="toggleMode()" title="Toggle theme">🌙</button>
+  </div>
+</nav>
+
+<!-- ═══ HOME ═══ -->
+<div id="home" class="page active">
+  <div class="hero">
+    <div class="hero-badge">✦ Find rooms near your college</div>
+    <h1>
+      <span class="line1">Your Dream PG,</span>
+      <span class="line2">Just a Click Away</span>
+    </h1>
+    <p>Browse hundreds of verified PG accommodations and rental rooms near top colleges. Affordable, comfortable, and verified listings.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('view')">Browse Rooms →</button>
+      <button class="btn-outline" onclick="showPage('add')">List Your Room</button>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat">
+      <div class="stat-num" data-target="500">0+</div>
+      <div class="stat-label">Rooms Listed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="200">0+</div>
+      <div class="stat-label">Happy Students</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="15">0+</div>
+      <div class="stat-label">Colleges Covered</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="100">0%</div>
+      <div class="stat-label">Verified Listings</div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card fc1" style="animation-delay:0.1s">
+      <span class="feature-icon">🔍</span>
+      <h3>Smart Search</h3>
+      <p>Filter by location, type, rent range and facilities to find your perfect match instantly.</p>
+    </div>
+    <div class="feature-card fc2" style="animation-delay:0.2s">
+      <span class="feature-icon">⚡</span>
+      <h3>Instant Contact</h3>
+      <p>Connect directly with room owners in one tap. No middlemen, no delays.</p>
+    </div>
+    <div class="feature-card fc3" style="animation-delay:0.3s">
+      <span class="feature-icon">🛡️</span>
+      <h3>Verified Listings</h3>
+      <p>All rooms are reviewed to ensure you get exactly what you see — no surprises.</p>
+    </div>
+    <div class="feature-card fc4" style="animation-delay:0.4s">
+      <span class="feature-icon">📸</span>
+      <h3>Real Photos</h3>
+      <p>Browse actual room images uploaded by owners so you know before you go.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD ROOM ═══ -->
+<div id="add" class="page">
+  <div class="page-header">
+    <h2>List Your Room</h2>
+    <p>Fill in the details below and find tenants fast</p>
+  </div>
+
+  <div class="form-wrapper">
+    <form id="roomForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label>PG / Room Name</label>
+          <input type="text" id="name" placeholder="e.g. Green Villa PG" required>
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <input type="text" id="location" placeholder="Area or Colony" required>
+        </div>
+        <div class="field">
+          <label>Monthly Rent (₹)</label>
+          <input type="number" id="rent" placeholder="e.g. 5000" required>
+        </div>
+        <div class="field">
+          <label>Room Type</label>
+          <select id="type">
+            <option value="Single">Single Room</option>
+            <option value="Shared">Shared Room</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Contact Number</label>
+          <input type="text" id="contact" placeholder="+91 98765 43210">
+        </div>
+        <div class="field full">
+          <label>Facilities</label>
+          <input type="text" id="facilities" placeholder="WiFi, AC, Food, Parking…">
+        </div>
+        <div class="field full">
+          <label>Room Photo</label>
+          <div class="file-upload">
+            <input type="file" id="image" accept="image/*" onchange="updateFileName(this)">
+            <div class="upload-icon">📷</div>
+            <span id="fileLabel">Drop image here or <strong>click to browse</strong></span>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">✦ Submit Room Listing</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ VIEW ROOMS ═══ -->
+<div id="view" class="page">
+  <div class="page-header">
+    <h2>Browse Rooms</h2>
+    <p>Discover the perfect PG for you</p>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchLocation" placeholder="🔍 Search by location…">
+    <select id="filterType">
+      <option value="">All Types</option>
+      <option value="Single">Single</option>
+      <option value="Shared">Shared</option>
+    </select>
+    <select id="sortRent">
+      <option value="">Sort by Rent</option>
+      <option value="low">Low → High</option>
+      <option value="high">High → Low</option>
+    </select>
+    <button class="search-btn" onclick="applyFilters()">Search</button>
+  </div>
+
+  <div id="roomList" class="rooms-grid"></div>
+</div>
+
+<script>
+// ─── Cursor ─────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.transform = `translate(${mx - 7}px, ${my - 7}px)`;
+});
+
+(function animateRing() {
+  rx += (mx - rx - 20) * 0.12;
+  ry += (my - ry - 20) * 0.12;
+  ring.style.transform = `translate(${rx}px, ${ry}px)`;
+  requestAnimationFrame(animateRing);
+})();
+
+document.querySelectorAll('a, button, input, select, .room-card, .feature-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform += ' scale(1.8)';
+    cursor.style.background = '#f472b6';
+    ring.style.opacity = '0.6';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.background = '#0fd6c2';
+    ring.style.opacity = '1';
+  });
+});
+
+// ─── Page Navigation ─────────────────────────────
+let rooms = JSON.parse(localStorage.getItem('rooms')) || [];
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  ['home','add','view'].forEach(id => {
+    document.getElementById('nav-' + id).classList.toggle('active', id === page);
+  });
+  if (page === 'view') displayRooms();
+}
+
+// ─── Form ─────────────────────────────────────────
+function updateFileName(input) {
+  const label = document.getElementById('fileLabel');
+  if (input.files[0]) {
+    label.innerHTML = `📎 <strong>${input.files[0].name}</strong>`;
+  }
+}
+
+document.getElementById('roomForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const bar = document.getElementById('progress');
+  bar.style.width = '60%';
+
+  const imageFile = document.getElementById('image').files[0];
+  const processRoom = (imgSrc) => {
+    const room = {
+      name: document.getElementById('name').value,
+      location: document.getElementById('location').value,
+      rent: document.getElementById('rent').value,
+      type: document.getElementById('type').value,
+      facilities: document.getElementById('facilities').value,
+      contact: document.getElementById('contact').value,
+      image: imgSrc
+    };
+    rooms.push(room);
+    localStorage.setItem('rooms', JSON.stringify(rooms));
+    bar.style.width = '100%';
+    showToast('✅ Room Listed Successfully!');
+    setTimeout(() => { bar.style.width = '0'; showPage('view'); }, 800);
+    this.reset();
+    document.getElementById('fileLabel').innerHTML = 'Drop image here or <strong>click to browse</strong>';
+  };
+
+  if (imageFile) {
+    const reader = new FileReader();
+    reader.onload = () => processRoom(reader.result);
+    reader.readAsDataURL(imageFile);
+  } else {
+    processRoom('https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80');
+  }
+});
+
+// ─── Display Rooms ───────────────────────────────
+function displayRooms(list = rooms) {
+  const container = document.getElementById('roomList');
+  container.innerHTML = '';
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🏠</div>
+        <h3>No rooms found</h3>
+        <p style="color:var(--muted);margin-top:8px">Try adjusting filters or add the first listing!</p>
+      </div>`;
+    return;
+  }
+
+  list.forEach((room, index) => {
+    const facilityTags = room.facilities
+      ? room.facilities.split(',').map(f => `<span class="tag">${f.trim()}</span>`).join('')
+      : '';
+    const card = document.createElement('div');
+    card.className = 'room-card';
+    card.style.animationDelay = `${index * 0.08}s`;
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${room.image}" alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80'">
+        <div class="card-type-badge ${room.type === 'Single' ? 'badge-single' : 'badge-shared'}">${room.type}</div>
+        <div class="card-rent-tag">₹${Number(room.rent).toLocaleString()}/mo</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${room.name}</div>
+        <div class="card-detail"><span class="icon">📍</span>${room.location}</div>
+        <div class="card-detail"><span class="icon">📞</span>${room.contact || 'Not provided'}</div>
+        <div class="tag-row">${facilityTags}</div>
+        <div class="card-actions">
+          <button class="btn-contact" onclick="contactOwner('${room.contact}')">📞 Contact</button>
+          <button class="btn-delete" onclick="deleteRoom(${index})">🗑 Remove</button>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function contactOwner(number) {
+  if (number) window.location.href = `tel:${number}`;
+  else showToast('📞 No contact number provided');
+}
+
+function deleteRoom(index) {
+  const card = document.querySelectorAll('.room-card')[index];
+  if (card) {
+    card.style.transition = 'all 0.4s';
+    card.style.transform = 'scale(0.8) translateY(-20px)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      rooms.splice(index, 1);
+      localStorage.setItem('rooms', JSON.stringify(rooms));
+      displayRooms();
+    }, 400);
+  }
+}
+
+function applyFilters() {
+  const location = document.getElementById('searchLocation').value.toLowerCase();
+  const type = document.getElementById('filterType').value;
+  const sort = document.getElementById('sortRent').value;
+  let filtered = rooms.filter(r =>
+    r.location.toLowerCase().includes(location) &&
+    (type === '' || r.type === type)
+  );
+  if (sort === 'low') filtered.sort((a, b) => a.rent - b.rent);
+  if (sort === 'high') filtered.sort((a, b) => b.rent - a.rent);
+  displayRooms(filtered);
+}
+
+// ─── Toast ───────────────────────────────────────
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ─── Toggle mode ─────────────────────────────────
+let isLight = false;
+function toggleMode() {
+  isLight = !isLight;
+  document.body.classList.toggle('light', isLight);
+  document.querySelector('.toggle-btn').textContent = isLight ? '🌞' : '🌙';
+}
+
+// ─── Scroll animations ───────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.feature-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(40px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(.23,1,.32,1)';
+  observer.observe(el);
+});
+
+// ─── Counter animation ───────────────────────────
+const statNums = document.querySelectorAll('.stat-num');
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = parseInt(e.target.getAttribute('data-target'));
+      const suffix = e.target.textContent.replace(/\d+/, '');
+      let count = 0;
+      const step = target / 60;
+      const timer = setInterval(() => {
+        count = Math.min(count + step, target);
+        e.target.textContent = Math.round(count) + suffix;
+        if (count >= target) clearInterval(timer);
+      }, 20);
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+statNums.forEach(el => statsObserver.observe(el));
+
+// Real-time search on typing
+document.getElementById('searchLocation')?.addEventListener('input', applyFilters);
+document.getElementById('filterType')?.addEventListener('change', applyFilters);
+document.getElementById('sortRent')?.addEventListener('change', applyFilters);
+
+// Init
+displayRooms();
+</script>
+</body>
+</html>
